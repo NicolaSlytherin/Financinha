@@ -167,3 +167,72 @@ details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
 details > summary::before { content: '▸'; margin-right: 6px; }
 details[open] > summary::before { content: '▾'; }
+
+/* ======================================================================
+   Tela de acesso (estrutura em duas partes: marca | formulário)
+   No celular continua em uma coluna, igual antes.
+   ====================================================================== */
+.acesso { display: flex; flex-direction: column; gap: 22px; padding-top: 28px; }
+.acesso-marca, .acesso-form { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.so-desk { display: none; }
+
+/* ======================================================================
+   Computador (900px ou mais): menu lateral, conteúdo largo, painel em
+   duas colunas, login dividido e janelas no centro da tela.
+   ====================================================================== */
+@media (min-width: 900px) {
+  body { font-size: 15.5px; }
+  body.com-abas { padding-left: 248px; }
+
+  /* Barra de abas vira menu lateral fixo */
+  .abas { top: 0; bottom: 0; left: 0; right: auto; width: 248px; border-top: 0; border-right: 1px solid var(--line); padding: 0; }
+  .abas nav { max-width: none; height: 100%; margin: 0; flex-direction: column; align-items: stretch; gap: 4px; padding: 24px 14px; }
+  .abas .logo { display: flex; order: -2; padding: 0 10px 22px; font-size: 18px; }
+  .aba, .aba.so-desk { display: flex; flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; height: 46px; padding: 0 12px; border-radius: 12px; font-size: 15px; }
+  .aba:hover { background: var(--surface-2); color: var(--fg); }
+  .aba[aria-current="page"] { background: var(--accent-soft); color: var(--accent-fg); }
+  .aba[data-desk-off][aria-current="page"] { background: transparent; color: var(--muted); font-weight: 500; }
+  .aba[data-v="mais"] { margin-top: auto; }
+  .aba-mais { order: -1; width: auto; height: auto; min-height: 48px; margin: 0 0 18px; justify-content: center; gap: 8px; background: var(--accent); color: var(--on-accent); border-radius: 14px; font-size: 15px; font-weight: 600; }
+  .aba-mais:hover { background: var(--accent); color: var(--on-accent); filter: brightness(1.06); }
+  .aba-mais span { width: auto; height: auto; background: transparent; }
+  .aba-mais em { display: inline; font-style: normal; }
+
+  /* Área de conteúdo */
+  .app { max-width: 920px; padding: 32px 40px 56px; gap: 18px; }
+  .app.sem-abas { max-width: 760px; padding-bottom: 130px; }
+  .rodape-form > div { max-width: 728px; }
+  .h1 { font-size: 30px; }
+  .chips.rola { margin-inline: 0; padding-inline: 0; flex-wrap: wrap; overflow: visible; }
+
+  /* Painel em duas colunas */
+  .app.v-painel { max-width: 1120px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .app.v-painel > * { grid-column: 1 / -1; }
+  .app.v-painel > .painel { grid-column: auto; }
+  .app.v-painel > [aria-label="Primeiros passos"] { grid-column: 1 / -1; }
+  .app.v-painel > [aria-label="Últimos lançamentos"] { grid-column: auto; }
+  .app.v-painel > .fab { display: none; } /* o botão "Novo lançamento" fica no menu lateral */
+  .app.v-painel .hero { padding: 28px 32px; }
+  .app.v-painel .hero .big { font-size: 44px; }
+
+  /* Login / cadastro em duas partes */
+  .app.v-acesso { max-width: 1080px; min-height: 100vh; justify-content: center; padding: 48px 40px; }
+  .acesso { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 460px); gap: 72px; align-items: center; padding-top: 0; }
+  .acesso-marca { gap: 26px; }
+  .acesso-marca .logo { font-size: 22px; }
+  .acesso-marca .h1 { font-size: 46px !important; }
+  .acesso-marca .sub { font-size: 17px !important; }
+  .acesso-lista { display: flex; flex-direction: column; gap: 12px; list-style: none; margin: 0; padding: 0; color: var(--muted); }
+  .acesso-lista li { display: flex; gap: 10px; align-items: flex-start; }
+  .acesso-lista li::before { content: ''; flex: none; width: 8px; height: 8px; margin-top: 8px; border-radius: 50%; background: var(--accent); }
+  .acesso-form { gap: 16px; }
+  .acesso-form > .btn-txt { align-self: center; }
+
+  /* Folhas (menus de opções) viram janela no centro */
+  .scrim { align-items: center; padding: 24px; }
+  .folha { max-width: 520px; max-height: 85vh; border-radius: 20px; padding: 24px; }
+
+  /* Aviso rápido sem a barra de baixo */
+  .toast { bottom: 24px; }
+  body.com-abas .toast { left: calc(50% + 124px); }
+}
