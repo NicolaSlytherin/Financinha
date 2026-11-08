@@ -63,6 +63,8 @@
     setaE: '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     rep: '<svg width="12" height="12" viewBox="0 0 12 12" role="img" aria-label="repete"><path d="M2 5a4 4 0 0 1 7-2M10 7a4 4 0 0 1-7 2M9 1v2.5H6.5M3 11V8.5h2.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     cadeado: '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style="flex:none;margin-top:2px"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+    alvo: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="1.2" fill="currentColor"/></svg>',
+    grafico: '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M4 18V11M9 18V5M14 18V9M19 18V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
     logo: '<svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="10" style="fill:var(--accent)"/><path d="M10 24 L16 17 L20 21 L27 12" style="stroke:var(--on-accent)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   };
   function topo(titulo, voltarPara, dir) {
@@ -106,10 +108,11 @@
     F.limpar();
     if (view !== 'acesso' && view !== 'erroDados' && !S) view = 'acesso';
     if (view === 'lanc' && !form) view = 'painel';
-    $app.className = 'app' + (view === 'lanc' ? ' sem-abas' : '');
+    $app.className = 'app v-' + view + (view === 'lanc' ? ' sem-abas' : '');
     $app.innerHTML = VIEWS[view]();
     var comAbas = !!(modo && S) && view !== 'lanc' && view !== 'acesso' && view !== 'erroDados';
     $abas.hidden = !comAbas;
+    document.body.classList.toggle('com-abas', comAbas);
     if (comAbas) renderAbas();
     if (view === 'historico') renderHistLista();
     if (view === 'relatorios') desenharRelatorio();
@@ -117,9 +120,15 @@
   function renderAbas() {
     var at = { painel: 'painel', historico: 'historico', cartoes: 'cartoes', cartao: 'cartoes' }[view] || 'mais';
     var a = function (v, ic, r) { return '<button type="button" class="aba" data-act="ir" data-v="' + v + '"' + (at === v ? ' aria-current="page"' : '') + '>' + ic + r + '</button>'; };
-    $abas.innerHTML = '<nav aria-label="Navegação principal">' + a('painel', I.casa, 'Painel') + a('historico', I.lista, 'Histórico') +
-      '<button type="button" class="aba aba-mais" data-act="novo" aria-label="Novo lançamento"><span>' + I.mais + '</span></button>' +
-      a('cartoes', I.cartao, 'Cartões') + a('mais', I.menu, 'Mais') + '</nav>';
+    // No computador (CSS ≥ 900px) esta barra vira um menu lateral: logo, botão de novo lançamento
+    // e atalhos diretos para Metas e Relatórios (classe so-desk, escondidos no celular).
+    var desk = function (vs, v, ic, r) { return '<button type="button" class="aba so-desk" data-act="ir" data-v="' + v + '"' + (vs.indexOf(view) >= 0 ? ' aria-current="page"' : '') + '>' + ic + r + '</button>'; };
+    var maisDesk = ['metas', 'meta', 'relatorios'].indexOf(view) >= 0 ? ' data-desk-off="1"' : '';
+    $abas.innerHTML = '<nav aria-label="Navegação principal"><div class="logo so-desk">' + I.logo + 'Finanças Simples</div>' +
+      a('painel', I.casa, 'Painel') + a('historico', I.lista, 'Histórico') +
+      '<button type="button" class="aba aba-mais" data-act="novo" aria-label="Novo lançamento"><span>' + I.mais + '</span><em class="so-desk">Novo lançamento</em></button>' +
+      a('cartoes', I.cartao, 'Cartões') + desk(['metas', 'meta'], 'metas', I.alvo, 'Metas') + desk(['relatorios'], 'relatorios', I.grafico, 'Relatórios') +
+      a('mais', I.menu, 'Mais').replace('class="aba"', 'class="aba"' + maisDesk) + '</nav>';
   }
 
   var VIEWS = {};
@@ -129,11 +138,14 @@
     var cad = ui.acesso === 'cadastro' || !conta;
     var bloq = LS.get(K.bloq) || { falhas: 0, ate: 0 };
     var bloqueado = bloq.ate > Date.now();
-    var h = '<div style="display:flex;flex-direction:column;gap:22px;padding-top:28px"><div class="logo">' + I.logo + 'Finanças Simples</div>';
+    var h = '<div class="acesso"><div class="acesso-marca"><div class="logo">' + I.logo + 'Finanças Simples</div>';
+    var titulo = cad
+      ? '<div><h1 class="h1" style="font-size:31px">' + (conta ? 'Criar outra conta' : 'Crie sua conta') + '</h1><p class="sub" style="margin:6px 0 0;font-size:15px">Registre o que entra, o que sai e o que ainda vai vencer.</p></div>'
+      : '<div><h1 class="h1" style="font-size:31px">Entrar</h1><p class="sub" style="margin:6px 0 0;font-size:15px">Olá de novo. Seus dados ficam cifrados neste aparelho.</p></div>';
+    h += titulo + '<ul class="acesso-lista so-desk"><li>Receitas e despesas do mês, com saldo realizado e previsto</li><li>Cartões de crédito com fatura, limite e vencimento</li><li>Metas de economia e relatórios mensais</li><li>Dados cifrados só neste aparelho</li></ul></div><div class="acesso-form">';
     if (!SEG.disponivel()) h += '<div class="aviso a-neg">Este navegador não oferece criptografia segura. Use uma versão atual do Chrome, Safari, Firefox ou Edge para criar uma conta. O modo de exemplo continua disponível.</div>';
     if (cad) {
-      h += '<div><h1 class="h1" style="font-size:31px">' + (conta ? 'Criar outra conta' : 'Crie sua conta') + '</h1><p class="sub" style="margin:6px 0 0;font-size:15px">Registre o que entra, o que sai e o que ainda vai vencer.</p></div>' +
-        '<form id="f-cad" class="painel" novalidate>' +
+      h += '<form id="f-cad" class="painel" novalidate>' +
         campo('cad-nome', 'Nome completo', 'text', 'data-mask="nome" autocomplete="name" maxlength="80"') +
         campo('cad-email', 'E-mail', 'email', 'data-mask="email" autocomplete="email" inputmode="email" maxlength="120"') +
         campo('cad-senha', 'Senha', 'password', 'autocomplete="new-password" maxlength="128" placeholder="8 ou mais, com letra e número"') +
@@ -144,8 +156,7 @@
         '<p class="sub" style="margin:0;display:flex;gap:6px;align-items:flex-start">' + I.cadeado + '<span>A conta e os dados ficam só neste aparelho, cifrados com a sua senha. Sem a senha, ninguém lê os dados, nem nós.</span></p>' +
         '</form>' + (conta ? '<button class="btn-txt" data-act="acessoModo" data-v="entrar">Já tenho conta neste aparelho</button>' : '');
     } else {
-      h += '<div><h1 class="h1" style="font-size:31px">Entrar</h1><p class="sub" style="margin:6px 0 0;font-size:15px">Olá de novo. Seus dados ficam cifrados neste aparelho.</p></div>' +
-        '<form id="f-login" class="painel" novalidate>' +
+      h += '<form id="f-login" class="painel" novalidate>' +
         campo('log-email', 'E-mail', 'email', 'data-mask="email" autocomplete="email" inputmode="email" maxlength="120" value="' + esc(conta.email) + '"') +
         campo('log-senha', 'Senha', 'password', 'autocomplete="current-password" maxlength="128"') +
         '<label style="display:flex;gap:10px;align-items:center;font-size:14px;min-height:44px"><input type="checkbox" id="log-manter" style="width:20px;height:20px;margin:0;accent-color:var(--accent)"> Manter-me conectado por 30 dias</label>' +
@@ -155,7 +166,7 @@
         '</form><button class="btn-txt" data-act="acessoModo" data-v="cadastro">Criar outra conta neste aparelho</button>';
     }
     h += '<div class="painel" style="gap:10px"><strong>Só quer conhecer?</strong><span class="sub" style="font-size:14px">Abra com meses de exemplo já preenchidos: salário, contas, compras no cartão, faturas e metas.</span>' +
-      '<button class="btn btn-sec" data-act="entrarDemo">Experimentar com dados de exemplo</button></div></div>';
+      '<button class="btn btn-sec" data-act="entrarDemo">Experimentar com dados de exemplo</button></div></div></div>';
     return h;
   };
 
